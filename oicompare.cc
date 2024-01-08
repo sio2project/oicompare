@@ -2,19 +2,22 @@
 #include <array>
 #include <cctype>
 #include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <fmt/format.h>
 #include <mio/mmap.hpp>
 
 #include "oicompare.hh"
+#include "print_format.hh"
+#include "translations.hh"
 
-using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 namespace
@@ -48,82 +51,26 @@ private:
   mio::mmap_source mmap_;
 };
 
-constexpr bool
-is_ascii_printable (char ch)
+oicompare::translations::translation
+parse_translation (std::string_view name)
 {
-  return ch >= 32 && ch <= 126;
+  using namespace oicompare::translations;
+
+  if (name == "english_abbreviated"sv)
+    return english_translation<kind::abbreviated>::print;
+  else if (name == "english_full"sv)
+    return english_translation<kind::full>::print;
+  else if (name == "english_terse"sv)
+    return english_translation<kind::terse>::print;
+  else if (name == "polish_abbreviated"sv)
+    return polish_translation<kind::abbreviated>::print;
+  else if (name == "polish_full"sv)
+    return polish_translation<kind::full>::print;
+  else if (name == "polish_terse"sv)
+    return polish_translation<kind::terse>::print;
+  else
+    return nullptr;
 }
-
-std::string
-represent (const oicompare::token<const char *> &token) noexcept
-{
-  switch (token.type)
-    {
-    case oicompare::token_type::eof:
-      return "EOF"s;
-    case oicompare::token_type::newline:
-      return "EOL"s;
-    case oicompare::token_type::word:
-      return fmt::format (
-          R"("{}")",
-          fmt::join (
-              std::string_view{token.first, token.last}
-                  | std::views::transform ([&] (char ch) -> std::string {
-                      if (is_ascii_printable (ch))
-                        return {ch};
-                      else
-                        {
-                          constexpr std::array hex_table{
-                              '0', '1', '2', '3', '4', '5', '6', '7',
-                              '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-                          return {'<',
-                                  '0',
-                                  'x',
-                                  hex_table[ch >> 4],
-                                  hex_table[ch & 0x0F],
-                                  '>'};
-                        }
-                    }),
-              ""sv));
-    default:
-      return "<unknown>"s;
-    }
-}
-
-template <bool Terse> struct english_translation
-{
-  static void
-  print (const std::optional<oicompare::mismatch<const char *, const char *>>
-             &mismatch)
-  {
-    if (mismatch)
-      fmt::println (Terse ? "WRONG" : "WRONG: line {}: expected {}, got {}",
-                    mismatch->line_number, represent (mismatch->first),
-                    represent (mismatch->second));
-    else
-      fmt::println ("OK");
-  }
-};
-
-template <bool Ascii, bool Terse> struct polish_translation
-{
-  static void
-  print (const std::optional<oicompare::mismatch<const char *, const char *>>
-             &mismatch)
-  {
-    if (mismatch)
-      fmt::println (Terse ? "{}"
-                          : "{}: wiersz {}: oczekiwano {}, otrzymano {}",
-                    Ascii ? "ZLE" : "ŹLE", mismatch->line_number,
-                    represent (mismatch->first), represent (mismatch->second));
-    else
-      fmt::println ("OK");
-  }
-};
-
-using translation = void (*) (
-    const std::optional<oicompare::mismatch<const char *, const char *>> &);
 }
 
 int
@@ -138,31 +85,19 @@ main (int argc, char **argv)
   mapped_file file1{argv[1]};
   mapped_file file2{argv[2]};
 
-  std::string_view translation_name = argc < 4 ? "english"sv : argv[3];
-  translation trans;
+  std::string_view translation_name = argc < 4 ? "english_terse"sv : argv[3];
+  oicompare::translations::translation translation;
 
-  if (translation_name == "english"sv)
-    trans = english_translation<false>::print;
-  else if (translation_name == "english_terse"sv)
-    trans = english_translation<true>::print;
-  else if (translation_name == "polish"sv)
-    trans = polish_translation<false, false>::print;
-  else if (translation_name == "polish_terse"sv)
-    trans = polish_translation<false, true>::print;
-  else if (translation_name == "polish_ascii"sv)
-    trans = polish_translation<true, false>::print;
-  else if (translation_name == "polish_ascii_terse"sv)
-    trans = polish_translation<true, true>::print;
+  if (auto parsed_translation = parse_translation (translation_name))
+    translation = parsed_translation;
   else
     {
-      fmt::println ("Unknown translation: {}", translation_name);
+      fmt::println (stderr, "Unknown translation: {}", translation_name);
       return 2;
     }
 
-  auto result = oicompare::compare (
-      file1.mmap ().data (), file1.mmap ().data () + file1.mmap ().size (),
-      file2.mmap ().data (), file2.mmap ().data () + file2.mmap ().size ());
-  trans (result);
+  auto result = oicompare::compare (file1.mmap (), file2.mmap ());
+  translation (result);
 
   return result ? EXIT_FAILURE : EXIT_SUCCESS;
 }

@@ -31,20 +31,23 @@ You may also pass the third argument to select a different translation:
 oicompare expected.txt received.txt english_terse
 ```
 
-Please note that most translations (including the default) will assume that
-the first file is the *expected output* and the second file is the *received
-output*.
+Please note that most translations will assume that the first file is the
+*expected program output* and the second file is the *got program output*.
+Specify the translation in the form `language_kind`.
 
-The following translations are available:
+The following languages are available:
 
-  * `english` (the default), `english_terse` – messages in English
-  * `polish`, `polish_terse` – messages in Polish, in UTF-8
-  * `polish_ascii`, `polish_ascii_terse` – messages in Polish, replacing
-    diacritic characters with closest ASCII equivalents
+  * `english` (the default) – messages in English
+  * `polish` – messages in Polish
 
-The `terse` variants only print the code (like `OK` or `WRONG`) without
-explaining the error. In particular, these do not leak any information about
-the input files (other than them not being equivalent).
+The following translation kinds are available:
+
+  * `terse` – only print whether the inputs match, this yields no more
+    information than the exit code
+  * `abbreviated` – show the mismatched tokens, using no more than 100
+    bytes for each token's representation, and thus no more than 255 bytes for
+    the entire report
+  * `full` – show the mismatched tokens
 
 ## API usage
 
@@ -62,7 +65,7 @@ look-back.
 
 The result is `optional<mismatch<It1, It2>>`, with `mismatch` specialized for
 iterators of the two ranges passed (they need not be of the same type). An
-empty value means that no mismatch was found (so the outputs are equivalent).
+empty value means that no mismatch was found (so the inputs are equivalent).
 The `mismatch` structure has the following fields:
 
 ```cpp
@@ -84,7 +87,8 @@ struct token
 template <typename It1, typename It2>
 struct mismatch
 {
-  size_t line_number;
+  make_unsigned_t<iter_difference_t<It1>> line_number;
+  optional<pair<It1, It2>> first_difference;
   token<It1> first;
   token<It2> second;
 };

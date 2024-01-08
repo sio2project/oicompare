@@ -4,9 +4,12 @@
 #include <algorithm>
 #include <concepts>
 #include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <optional>
 #include <ranges>
+#include <type_traits>
+#include <utility>
 
 namespace oicompare
 {
@@ -83,15 +86,22 @@ template <detail::char_iterator It> struct token
    * @param rhs second token
    */
   template <detail::char_iterator It2>
-  friend constexpr bool
-  operator== (const token &lhs, const token<It2> &rhs)
+  constexpr std::optional<std::optional<std::pair<It, It2>>>
+  compare (const token<It2> &other)
   {
-    if (lhs.type != rhs.type)
-      return false;
-    else if (lhs.type == token_type::word)
-      return std::ranges::equal (lhs.first, lhs.last, rhs.first, rhs.last);
+    if (type != other.type)
+      return std::optional<std::pair<It, It2>>{std::nullopt};
+    else if (type == token_type::word)
+      {
+        auto [mismatch, mismatch_other]
+            = std::ranges::mismatch (first, last, other.first, other.last);
+        if (mismatch == last && mismatch_other == other.last)
+          return std::nullopt;
+        else
+          return {{{std::move (mismatch), std::move (mismatch_other)}}};
+      }
     else
-      return true;
+      return std::nullopt;
   }
 };
 
@@ -132,7 +142,12 @@ template <detail::char_iterator It1, detail::char_iterator It2> struct mismatch
   /**
    * The line number in which the mismatch occurred.
    */
-  std::size_t line_number;
+  std::make_unsigned_t<std::iter_difference_t<It1>> line_number;
+
+  /**
+   * The mismatch.
+   */
+  std::optional<std::pair<It1, It2>> first_difference;
 
   /**
    * The token found in the first file.
@@ -160,7 +175,7 @@ template <detail::char_iterator It1, std::sentinel_for<It1> Sent1,
 constexpr std::optional<mismatch<It1, It2>>
 compare (It1 first1, Sent1 last1, It2 first2, Sent2 last2)
 {
-  std::size_t line_number = 1;
+  std::make_unsigned_t<std::iter_difference_t<It1>> line_number = 1;
 
   while (true)
     {
@@ -174,8 +189,8 @@ compare (It1 first1, Sent1 last1, It2 first2, Sent2 last2)
         while (tok1.type == token_type::newline)
           tok1 = detail::scan (first1, last1);
 
-      if (tok1 != tok2)
-        return {{line_number, tok1, tok2}};
+      if (auto mismatch = tok1.compare (tok2))
+        return {{line_number, std::move (*mismatch), tok1, tok2}};
       else if (tok1.type == token_type::newline)
         ++line_number;
       else if (tok1.type == token_type::eof)
