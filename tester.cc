@@ -93,5 +93,52 @@ main ()
       ++index;
     }
 
+  index = 0;
+  for (const auto &test_case : test_translation_cases)
+    {
+      // Prevent the compiler from optimizing the test
+      std::string first_copy (test_case.first.size (), '\0');
+      std::memcpy (first_copy.data (), test_case.first.data (),
+                   test_case.first.size ());
+      std::string second_copy (test_case.second.size (), '\0');
+      std::memcpy (second_copy.data (), test_case.second.data (),
+                   test_case.second.size ());
+
+      auto result = oicompare::compare (
+          first_copy.c_str (), first_copy.c_str () + first_copy.size (),
+          second_copy.c_str (), second_copy.c_str () + second_copy.size ());
+
+      // Replace stdout.
+      fflush (stdout);
+      int stdout_fd = dup (fileno (stdout));
+      std::FILE *capture_file = tmpfile ();
+      dup2 (fileno (capture_file), fileno (stdout));
+
+      // Print the result.
+      test_case.translator (result);
+
+      // Restore stdout.
+      fflush (stdout);
+      dup2 (stdout_fd, fileno (stdout));
+      close (stdout_fd);
+
+      char buffer[1024];
+      std::string result_str;
+      rewind (capture_file);
+      while (fgets (buffer, sizeof (buffer), capture_file) != nullptr)
+        result_str += buffer;
+      fclose (capture_file);
+
+      if (result_str != test_case.result)
+        {
+          fmt::println ("Test {} failed", index);
+          fmt::println ("Expected: {}", test_case.result);
+          fmt::println ("Got: {}", result_str);
+          return 1;
+        }
+
+      ++index;
+    }
+
   return 0;
 }
