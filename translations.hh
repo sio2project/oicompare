@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 #include "oicompare.hh"
+#include "print_format.hh"
 
 namespace oicompare::translations
 {
@@ -108,7 +109,7 @@ template <> struct represent_word<true>
     using namespace std::string_view_literals;
 
     assert (!word.empty ());
-    assert (first_difference < word.size ());
+    assert (first_difference <= word.size ());
 
     std::size_t used_chars
         = char_length ('"') + char_length (word[first_difference]);
@@ -188,7 +189,10 @@ template <> struct represent_word<true>
         append_char_helper (word[first_difference - 1]);
       }
 
-    append_char_helper (word[first_difference]);
+    if (first_difference < word.size ())
+      {
+        append_char_helper (word[first_difference]);
+      }
 
     if (first_difference < word.size () - 1)
       {
@@ -243,7 +247,7 @@ template <kind Kind> struct english_translation
   {
     using namespace std::string_view_literals;
 
-    return print_format ([&] (auto &ctx) {
+    return print_format ([&token, mismatch] (auto &ctx) {
       auto out = ctx.out ();
       switch (token.type)
         {
