@@ -1,0 +1,22 @@
+name: test
+run-name: Run tests
+on:
+  push:
+    branches: ['main']
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Meson and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build build-essential
+      - name: Build
+        run: |
+          meson build
+          ninja -C build
+      - name: Test
+        run: |
+          ninja -C build test
