@@ -4,6 +4,7 @@
 #include <variant>
 
 #include "oicompare.hh"
+#include "translations.hh"
 
 namespace oicompare::tests
 {
@@ -51,6 +52,14 @@ struct test_case
   result expected_result;
   std::string_view first;
   std::string_view second;
+};
+
+struct test_translation_case
+{
+  oicompare::translations::translation translator;
+  std::string_view first;
+  std::string_view second;
+  std::string_view result;
 };
 
 #define REP10(X) X X X X X X X X X X
@@ -101,6 +110,41 @@ constexpr auto test_cases = std::array{
         failure{1, {token_type::word, 0, 101}, {token_type::word, 0, 100}},
         REP100 ("A"sv) "B"sv, REP100 ("A"sv) " B"sv},
 };
+
+constexpr auto test_translation_cases = std::array{
+    test_translation_case{
+        translations::english_translation<translations::kind::full>::print,
+        ""sv, ""sv, "OK\n"sv},
+    test_translation_case{
+        translations::english_translation<translations::kind::full>::print,
+        "ABC"sv, "ABC"sv, "OK\n"sv},
+    test_translation_case{
+        translations::english_translation<translations::kind::full>::print,
+        "ABC\nDEF\n"sv, "ABC\nABC\n"sv,
+        "WRONG: line 2: expected \"DEF\", got \"ABC\"\n"sv},
+    test_translation_case{
+        translations::english_translation<translations::kind::terse>::print,
+        "ABC"sv, "AB"sv, "WRONG\n"sv},
+    test_translation_case{translations::english_translation<
+                              translations::kind::abbreviated>::print,
+                          "25"sv, "2"sv,
+                          "WRONG: line 1: expected \"25\", got \"2\"\n"sv},
+    test_translation_case{
+        translations::english_translation<
+            translations::kind::abbreviated>::print,
+        "10001"sv REP100 ("0"sv), "10000"sv REP100 ("0"sv),
+        "WRONG: line 1: expected \"1000100000000000000000000000000000000000000000000000000000000000000000000000000000000…\", got \"1000000000000000000000000000000000000000000000000000000000000000000000000000000000000…\"\n"sv},
+    test_translation_case{
+        translations::english_translation<
+            translations::kind::abbreviated>::print,
+        "1"sv REP100 ("0"sv) "0"sv REP100 ("0"sv),
+        "1"sv REP100 ("0"sv) "1"sv REP100 ("0"sv),
+        "WRONG: line 1: expected \"1000000000000000000000000000000000000000000000000000000000000000000000000000000…000…\", got \"1000000000000000000000000000000000000000000000000000000000000000000000000000000…010…\"\n"sv},
+    test_translation_case{
+        translations::english_translation<
+            translations::kind::abbreviated>::print,
+        "1"sv REP100 ("0"sv) "0"sv, "1"sv REP100 ("0"sv) "1"sv,
+        "WRONG: line 1: expected \"10000000000000000000000000000000000000000000000000000000000000000000000000000000000…00\", got \"10000000000000000000000000000000000000000000000000000000000000000000000000000000000…01\"\n"sv}};
 
 #undef REP100
 #undef REP10
