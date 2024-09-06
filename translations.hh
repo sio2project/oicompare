@@ -135,8 +135,10 @@ template <> struct represent_word<true>
 
     assert (used_chars <= abbreviated_max);
 
-    auto append_char_helper
-        = [&] (char ch) constexpr { out = append_char (std::move (out), ch); };
+    auto append_char_helper = [&](char ch) constexpr
+    {
+      out = append_char (std::move (out), ch);
+    };
 
     *out++ = '"';
 
@@ -190,9 +192,7 @@ template <> struct represent_word<true>
       }
 
     if (first_difference < word.size ())
-      {
-        append_char_helper (word[first_difference]);
-      }
+      append_char_helper (word[first_difference]);
 
     if (first_difference < word.size () - 1)
       {
