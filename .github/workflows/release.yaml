@@ -1,0 +1,32 @@
+on:
+  release:
+    types: [published]
+permissions:
+  contents: write
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Meson and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build build-essential
+      - name: Build
+        run: |
+          meson build
+          ninja -C build
+      - name: Build sioworkers box
+        run: |
+          mkdir -p oicompare-sandbox/bin
+          cp build/oicompare oicompare-sandbox/bin
+          tar -czvf oicompare-sandbox-${{ github.event.release.tag_name }}.tar.gz oicompare-sandbox
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd build
+          tar -czvf ../oicompare-${{ github.event.release.tag_name }}.tar.gz oicompare
+          cd ..
+          gh release upload ${{ github.event.release.tag_name }} oicompare-${{ github.event.release.tag_name }}.tar.gz
+          gh release upload ${{ github.event.release.tag_name }} oicompare-sandbox-${{ github.event.release.tag_name }}.tar.gz
