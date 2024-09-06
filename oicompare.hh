@@ -12,7 +12,7 @@
 namespace oicompare
 {
 
-const std::string VERSION = "1.0.0";
+const std::string VERSION = "1.0.1";
 
 namespace detail
 {
