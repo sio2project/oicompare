@@ -11,6 +11,9 @@
 
 namespace oicompare
 {
+
+const std::string VERSION = "1.0.0";
+
 namespace detail
 {
 constexpr bool
