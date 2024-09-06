@@ -76,6 +76,13 @@ parse_translation (std::string_view name)
 int
 main (int argc, char **argv)
 {
+  if (argc == 2
+      && (std::string_view{argv[1]} == "--version"sv
+          || std::string_view{argv[1]} == "-v"sv))
+    {
+      fmt::println ("oicompare version {}", oicompare::VERSION);
+      return EXIT_SUCCESS;
+    }
   if (argc < 3 || argc > 4) [[unlikely]]
     {
       fmt::println (stderr, "Usage: {} FILE1 FILE2 [TRANSLATION]", argv[0]);
