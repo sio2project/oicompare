@@ -27,8 +27,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd build
-          tar -czvf ../oicompare-${{ github.event.release.tag_name }}.tar.gz oicompare
-          cd ..
-          gh release upload ${{ github.event.release.tag_name }} oicompare-${{ github.event.release.tag_name }}.tar.gz
+          gh release upload ${{ github.event.release.tag_name }} build/oicompare
           gh release upload ${{ github.event.release.tag_name }} oicompare-sandbox-${{ github.event.release.tag_name }}.tar.gz
