@@ -17,7 +17,7 @@ jobs:
           sudo apt-get install -y meson ninja-build build-essential
       - name: Build
         run: |
-          meson build
+          meson setup build --debug --warnlevel 3 --werror -Db_sanitize=address,undefined
           ninja -C build
       - name: Test
         run: |
