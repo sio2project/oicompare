@@ -260,7 +260,6 @@ template <kind Kind> struct english_translation
               std::ranges::copy ("end of line"sv, std::move (out)).out);
           break;
         case oicompare::token_type::word:
-          assert (mismatch);
           represent_word<Kind == kind::abbreviated>::represent (
               out, {token.first, token.last},
               mismatch ? mismatch - token.first : 0);
