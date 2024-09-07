@@ -112,7 +112,7 @@ template <> struct represent_word<true>
     assert (first_difference <= word.size ());
 
     std::size_t used_chars
-        = char_length ('"') + char_length (word[first_difference]);
+        = char_length ('"');
     if (first_difference > 0)
       {
         used_chars += char_length (word[first_difference - 1]);
@@ -123,6 +123,9 @@ template <> struct represent_word<true>
               used_chars += ellipsis.size ();
           }
       }
+
+    if (first_difference < word.size ())
+      used_chars += char_length (word[first_difference]);
 
     if (first_difference < word.size () - 1)
       {
