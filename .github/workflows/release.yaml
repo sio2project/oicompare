@@ -16,8 +16,9 @@ jobs:
           sudo apt-get install -y meson ninja-build build-essential
       - name: Build
         run: |
-          meson build
+          meson build --optimization 3 -Db_ndebug=true --warnlevel 3 --werror
           ninja -C build
+          strip -s build/oicompare
       - name: Build sioworkers box
         run: |
           mkdir -p oicompare-sandbox/bin
