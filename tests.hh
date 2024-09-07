@@ -144,7 +144,12 @@ constexpr auto test_translation_cases = std::array{
         translations::english_translation<
             translations::kind::abbreviated>::print,
         "1"sv REP100 ("0"sv) "0"sv, "1"sv REP100 ("0"sv) "1"sv,
-        "WRONG: line 1: expected \"10000000000000000000000000000000000000000000000000000000000000000000000000000000000…00\", got \"10000000000000000000000000000000000000000000000000000000000000000000000000000000000…01\"\n"sv}};
+        "WRONG: line 1: expected \"10000000000000000000000000000000000000000000000000000000000000000000000000000000000…00\", got \"10000000000000000000000000000000000000000000000000000000000000000000000000000000000…01\"\n"sv},
+    test_translation_case{
+        translations::english_translation<translations::kind::full>::print,
+        "0\n0\n"sv, "0\n"sv,
+        "WRONG: line 2: expected \"0\", got end of file\n"sv}
+};
 
 #undef REP100
 #undef REP10
