@@ -2,7 +2,8 @@
 
 **oicompare** is a very simple program for comparing files. It works both as a
 command line utility and as a library, for example for embedding in custom
-checker programs. It's used in OIOIOI when no custom checker is provided.
+checker programs. Tested on 1300 submissions with 80k tests, it's faster
+than old compare. It's used in OIOIOI when no custom checker is provided.
 
 ## Building
 
