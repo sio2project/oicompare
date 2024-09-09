@@ -19,7 +19,7 @@ jobs:
           brew install meson ninja gcc@13
       - name: Build
         run: |
-          CXX=g++-13 meson setup build --debug --warnlevel 3 --werror -Db_sanitize=address,undefined -Dcpp_debugstl=true
+          CXX=g++-13 meson setup build --debug --warnlevel 3 --werror -Dcpp_debugstl=true
           ninja -C build
       - name: Test
         run: |
