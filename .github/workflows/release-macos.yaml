@@ -1,0 +1,31 @@
+on:
+  release:
+    types: [published]
+permissions:
+  contents: write
+jobs:
+  upload:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Pull submodules
+        run: git submodule update --init --recursive
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - name: Install dependencies
+        run: |
+          brew install meson ninja gcc@13
+      - name: Build
+        run: |
+          CXX=g++-13 meson setup build --debug --warnlevel 3 --werror -Dcpp_debugstl=true
+          ninja -C build
+      - name: Test
+        run: |
+          ninja -C build test
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mv build/oicompare oicompare-arm64
+          gh release upload ${{ github.event.release.tag_name }} oicompare-arm64

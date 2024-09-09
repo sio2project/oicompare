@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <unistd.h>
 
 #include <fmt/format.h>
 
