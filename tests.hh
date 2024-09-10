@@ -67,47 +67,48 @@ struct test_translation_case
 
 constexpr auto test_cases = std::array{
     // Identical
-    test_case{success{}, ""sv, ""sv},
-    test_case{success{}, "ABC"sv, "ABC"sv},
-    test_case{success{}, "ABC\nDEF\n"sv, "ABC\nDEF\n"sv},
+    test_case{{success{}}, ""sv, ""sv},
+    test_case{{success{}}, "ABC"sv, "ABC"sv},
+    test_case{{success{}}, "ABC\nDEF\n"sv, "ABC\nDEF\n"sv},
 
     // Equivalent whitespace
-    test_case{success{}, "A B C D E"sv, "A B\tC\0D\rE"sv},
+    test_case{{success{}}, "A B C D E"sv, "A B\tC\0D\rE"sv},
 
     // Excessive whitespace
-    test_case{success{}, "A B"sv, "A B \t\0\r"sv},
-    test_case{success{}, "A\0B"sv, "\0\t A   \r \0B\t\t\t"sv},
+    test_case{{success{}}, "A B"sv, "A B \t\0\r"sv},
+    test_case{{success{}}, "A\0B"sv, "\0\t A   \r \0B\t\t\t"sv},
 
     // Trailing newlines
-    test_case{success{}, "A\nB\nC"sv, "A\nB\nC\n\n\n\n\n\n\n\n\n\n"sv},
-    test_case{success{}, "A\n\n\n"sv, "A\n\n\n\n\n"sv},
+    test_case{{success{}}, "A\nB\nC"sv, "A\nB\nC\n\n\n\n\n\n\n\n\n\n"sv},
+    test_case{{success{}}, "A\n\n\n"sv, "A\n\n\n\n\n"sv},
 
     // Simply wrong
-    test_case{failure{1, {token_type::eof, 0, 0}, {token_type::word, 0, 8}},
+    test_case{{failure{1, {token_type::eof, 0, 0}, {token_type::word, 0, 8}}},
               ""sv, "NONEMPTY"sv},
-    test_case{failure{1, {token_type::word, 0, 3}, {token_type::word, 0, 2}},
+    test_case{{failure{1, {token_type::word, 0, 3}, {token_type::word, 0, 2}}},
               "YES"sv, "NO"sv},
-    test_case{failure{1, {token_type::word, 0, 3}, {token_type::word, 0, 3}},
+    test_case{{failure{1, {token_type::word, 0, 3}, {token_type::word, 0, 3}}},
               "TAK"sv, "NIE"sv},
-    test_case{failure{1, {token_type::word, 0, 1}, {token_type::word, 0, 1}},
+    test_case{{failure{1, {token_type::word, 0, 1}, {token_type::word, 0, 1}}},
               "0"sv, "1"sv},
-    test_case{failure{1, {token_type::word, 0, 4}, {token_type::word, 0, 2}},
+    test_case{{failure{1, {token_type::word, 0, 4}, {token_type::word, 0, 2}}},
               "NONE"sv, "-1"sv},
-    test_case{failure{1, {token_type::word, 0, 3}, {token_type::word, 0, 3}},
+    test_case{{failure{1, {token_type::word, 0, 3}, {token_type::word, 0, 3}}},
               "123"sv, "456"sv},
-    test_case{failure{1, {token_type::word, 0, 1}, {token_type::word, 0, 32}},
+    test_case{
+        {failure{1, {token_type::word, 0, 1}, {token_type::word, 0, 32}}},
               "1"sv, "1.000000000000000000000000000001"sv},
-    test_case{failure{1, {token_type::word, 4, 5}, {token_type::word, 4, 5}},
+    test_case{{failure{1, {token_type::word, 4, 5}, {token_type::word, 4, 5}}},
               "1 2 3 4"sv, "1 2 4 3"sv},
 
     // Different arrangement of lines
     test_case{
-        failure{1, {token_type::word, 2, 3}, {token_type::newline, 1, 2}},
+        {failure{1, {token_type::word, 2, 3}, {token_type::newline, 1, 2}}},
         "A B"sv, "A\nB"sv},
 
     // Bug of original compare which would consider these equal
     test_case{
-        failure{1, {token_type::word, 0, 101}, {token_type::word, 0, 100}},
+        {failure{1, {token_type::word, 0, 101}, {token_type::word, 0, 100}}},
         REP100 ("A"sv) "B"sv, REP100 ("A"sv) " B"sv},
 };
 
