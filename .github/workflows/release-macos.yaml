@@ -18,7 +18,7 @@ jobs:
           brew install meson ninja
       - name: Build
         run: |
-          LDFLAGS='-static' meson setup build --debug --warnlevel 3 --werror -Dcpp_debugstl=true
+          LDFLAGS='static' meson setup build --debug --warnlevel 3 --werror -Dcpp_debugstl=true
           ninja -C build
       - name: Test
         run: |
