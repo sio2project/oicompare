@@ -27,4 +27,5 @@ jobs:
       - name: upload bin
         uses: actions/upload-artifact@v2
         with:
-            name: build/oicompare
+            name: oicompare
+            path: build/oicompare
