@@ -64,14 +64,16 @@ append_char (OutputIt out, char ch)
     *out++ = ch;
   else
     {
+      auto u_ch = static_cast<unsigned char>(ch);
+
       constexpr std::array hex_table{'0', '1', '2', '3', '4', '5', '6', '7',
                                      '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
       *out++ = '<';
       *out++ = '0';
       *out++ = 'x';
-      *out++ = hex_table[ch >> 4];
-      *out++ = hex_table[ch & 0x0F];
+      *out++ = hex_table[u_ch / 16];
+      *out++ = hex_table[u_ch % 16];
       *out++ = '>';
     }
 
