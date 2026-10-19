@@ -7,7 +7,9 @@ jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Pull submodules
         run: git submodule update --init --recursive
       - name: Set up Meson and Ninja
@@ -23,14 +25,17 @@ jobs:
         run: |
           ninja -C build test
       - name: Build sioworkers box
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           mkdir -p oicompare-sandbox/bin
           cp build/oicompare oicompare-sandbox/bin
-          mv oicompare-sandbox oicompare-sandbox-${{ github.event.release.tag_name }}
-          tar -czvf oicompare-sandbox-${{ github.event.release.tag_name }}.tar.gz oicompare-sandbox-${{ github.event.release.tag_name }}
+          mv oicompare-sandbox oicompare-sandbox-$TAG
+          tar -czvf oicompare-sandbox-$TAG.tar.gz oicompare-sandbox-$TAG
       - name: Upload to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh release upload ${{ github.event.release.tag_name }} build/oicompare
-          gh release upload ${{ github.event.release.tag_name }} oicompare-sandbox-${{ github.event.release.tag_name }}.tar.gz
+          gh release upload "$TAG" build/oicompare
+          gh release upload "$TAG" oicompare-sandbox-$TAG.tar.gz

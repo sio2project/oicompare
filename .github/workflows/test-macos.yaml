@@ -4,16 +4,21 @@ on:
   push:
     branches: ['master']
   pull_request:
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Pull submodules
         run: git submodule update --init --recursive
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
+        uses: Homebrew/actions/setup-homebrew@4790763c0a3ba4036f72634dc079c4a7dfcd4878 # main
       - name: Install dependencies
         run: |
           brew install meson ninja
