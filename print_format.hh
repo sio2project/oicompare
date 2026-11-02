@@ -26,32 +26,24 @@ print_format (Func &&func)
 }
 
 template <typename CharT, typename Func>
-struct fmt::formatter<basic_print_format<CharT, Func>>
+struct fmt::formatter<basic_print_format<CharT, Func>, CharT>
 {
-  template <typename OutputIt>
-  constexpr fmt::basic_format_context<OutputIt, CharT>::iterator
-  format (basic_print_format<CharT, Func> &&obj,
-          fmt::basic_format_context<OutputIt, CharT> &ctx) const
-  {
-    return std::move (obj).func (ctx);
-  }
-
-  template <typename OutputIt>
-  constexpr fmt::basic_format_context<OutputIt, CharT>::iterator
-  format (basic_print_format<CharT, Func> &obj,
-          fmt::basic_format_context<OutputIt, CharT> &ctx) const
-  {
-    return format (std::move (obj), ctx);
-  }
-
+  template <typename ParseContext>
   constexpr auto
-  parse (basic_format_parse_context<CharT> &ctx) const
-      -> format_parse_context::iterator
+  parse (ParseContext &ctx) const -> ParseContext::iterator
   {
     auto it = ctx.begin (), end = ctx.end ();
     if (it != end && *it != CharT{'}'})
       throw format_error{"invalid format"};
     return it;
+  }
+
+  template <typename FormatContext>
+  constexpr auto
+  format (const basic_print_format<CharT, Func> &obj, FormatContext &ctx) const
+      -> FormatContext::iterator
+  {
+    return obj.func (ctx);
   }
 };
 
